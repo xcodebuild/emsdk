@@ -1928,35 +1928,38 @@ def load_sdk_manifest():
   # A 'category parameter' is a %foo%-encoded identifier that specifies
   # a class of tools instead of just one tool, e.g. %tag% or %nightly..%
   def expand_category_param(param, category_list, t, is_sdk):
-    global tools, sdks
-    for i in range(len(category_list)):
-      ver = category_list[i]
-      if len(ver.strip()) == 0: continue
+    for i, ver in enumerate(category_list):
+      if not ver.strip():
+        continue
       t2 = copy.copy(t)
       found_param = False
       for p, v in vars(t2).items():
         if is_string(v) and param in v:
           t2.__dict__[p] = v.replace(param, ver)
           found_param = True
-      if not found_param: continue
+      if not found_param:
+        continue
       t2.is_old = i < len(category_list) - 2
       if hasattr(t2, 'uses'):
-        t2.uses = list(map((lambda x: x.replace(param, ver)), t2.uses))
+        t2.uses = [x.replace(param, ver) for x in t2.uses]
 
       # Filter out expanded tools by version requirements, such as ["tag", "<=", "1.37.22"]
       if hasattr(t2, 'version_filter'):
         passes = passes_filters(param, ver, t2.version_filter)
-        if not passes: continue
+        if not passes:
+          continue
 
       if is_sdk:
         if dependencies_exist(t2):
           if not find_sdk(t2.name):
             add_sdk(t2)
-          elif VERBOSE: print('SDK ' + str(t2) + ' already existed in manifest, not adding twice')
+          elif VERBOSE:
+            print('SDK ' + str(t2) + ' already existed in manifest, not adding twice')
       else:
         if not find_tool(t2.name):
           add_tool(t2)
-        elif VERBOSE: print('Tool ' + str(t2) + ' already existed in manifest, not adding twice')
+        elif VERBOSE:
+          print('Tool ' + str(t2) + ' already existed in manifest, not adding twice')
 
   for tool in manifest['tools']:
     t = Tool(tool)
@@ -1965,16 +1968,26 @@ def load_sdk_manifest():
         t.is_old = False
 
       # Expand the metapackages that refer to tags or nightlies.
-      if '%tag%' in t.version: expand_category_param('%tag%', emscripten_tags, t, is_sdk=False)
-      elif '%precompiled_tag%' in t.version: expand_category_param('%precompiled_tag%', llvm_precompiled_tags, t, is_sdk=False)
-      elif '%precompiled_tag32%' in t.version: expand_category_param('%precompiled_tag32%', llvm_precompiled_tags_32bit, t, is_sdk=False)
-      elif '%precompiled_tag64%' in t.version: expand_category_param('%precompiled_tag64%', llvm_precompiled_tags_64bit, t, is_sdk=False)
-      elif '%binaryen_tag%' in t.version: expand_category_param('%binaryen_tag%', binaryen_tags, t, is_sdk=False)
-      elif '%nightly-llvm-64bit%' in t.version: expand_category_param('%nightly-llvm-64bit%', llvm_64bit_nightlies, t, is_sdk=False)
-      elif '%nightly-llvm-32bit%' in t.version: expand_category_param('%nightly-llvm-32bit%', llvm_32bit_nightlies, t, is_sdk=False)
-      elif '%nightly-emscripten%' in t.version: expand_category_param('%nightly-emscripten%', emscripten_nightlies, t, is_sdk=False)
-      elif '%waterfall-lkgr%' in t.version: expand_category_param('%waterfall-lkgr%', waterfall_lkgr, t, is_sdk=False)
-      elif '%releases-tag%' in t.version: expand_category_param('%releases-tag%', releases_tags, t, is_sdk=False)
+      if '%tag%' in t.version:
+        expand_category_param('%tag%', emscripten_tags, t, is_sdk=False)
+      elif '%precompiled_tag%' in t.version:
+        expand_category_param('%precompiled_tag%', llvm_precompiled_tags, t, is_sdk=False)
+      elif '%precompiled_tag32%' in t.version:
+        expand_category_param('%precompiled_tag32%', llvm_precompiled_tags_32bit, t, is_sdk=False)
+      elif '%precompiled_tag64%' in t.version:
+        expand_category_param('%precompiled_tag64%', llvm_precompiled_tags_64bit, t, is_sdk=False)
+      elif '%binaryen_tag%' in t.version:
+        expand_category_param('%binaryen_tag%', binaryen_tags, t, is_sdk=False)
+      elif '%nightly-llvm-64bit%' in t.version:
+        expand_category_param('%nightly-llvm-64bit%', llvm_64bit_nightlies, t, is_sdk=False)
+      elif '%nightly-llvm-32bit%' in t.version:
+        expand_category_param('%nightly-llvm-32bit%', llvm_32bit_nightlies, t, is_sdk=False)
+      elif '%nightly-emscripten%' in t.version:
+        expand_category_param('%nightly-emscripten%', emscripten_nightlies, t, is_sdk=False)
+      elif '%waterfall-lkgr%' in t.version:
+        expand_category_param('%waterfall-lkgr%', waterfall_lkgr, t, is_sdk=False)
+      elif '%releases-tag%' in t.version:
+        expand_category_param('%releases-tag%', releases_tags, t, is_sdk=False)
       else:
         add_tool(t)
 
@@ -1985,15 +1998,24 @@ def load_sdk_manifest():
       if not hasattr(sdk, 'is_old'):
         sdk.is_old = False
 
-      if '%tag%' in sdk.version: expand_category_param('%tag%', emscripten_tags, sdk, is_sdk=True)
-      elif '%precompiled_tag%' in sdk.version: expand_category_param('%precompiled_tag%', llvm_precompiled_tags, sdk, is_sdk=True)
-      elif '%precompiled_tag32%' in sdk.version: expand_category_param('%precompiled_tag32%', llvm_precompiled_tags_32bit, sdk, is_sdk=True)
-      elif '%precompiled_tag64%' in sdk.version: expand_category_param('%precompiled_tag64%', llvm_precompiled_tags_64bit, sdk, is_sdk=True)
-      elif '%nightly-llvm-64bit%' in sdk.version: expand_category_param('%nightly-llvm-64bit%', llvm_64bit_nightlies, sdk, is_sdk=True)
-      elif '%nightly-llvm-32bit%' in sdk.version: expand_category_param('%nightly-llvm-32bit%', llvm_32bit_nightlies, sdk, is_sdk=True)
-      elif '%nightly-emscripten%' in sdk.version: expand_category_param('%nightly-emscripten%', emscripten_nightlies, sdk, is_sdk=True)
-      elif '%waterfall-lkgr%' in sdk.version: expand_category_param('%waterfall-lkgr%', waterfall_lkgr, sdk, is_sdk=True)
-      elif '%releases-tag%' in sdk.version: expand_category_param('%releases-tag%', releases_tags, sdk, is_sdk=True)
+      if '%tag%' in sdk.version:
+        expand_category_param('%tag%', emscripten_tags, sdk, is_sdk=True)
+      elif '%precompiled_tag%' in sdk.version:
+        expand_category_param('%precompiled_tag%', llvm_precompiled_tags, sdk, is_sdk=True)
+      elif '%precompiled_tag32%' in sdk.version:
+        expand_category_param('%precompiled_tag32%', llvm_precompiled_tags_32bit, sdk, is_sdk=True)
+      elif '%precompiled_tag64%' in sdk.version:
+        expand_category_param('%precompiled_tag64%', llvm_precompiled_tags_64bit, sdk, is_sdk=True)
+      elif '%nightly-llvm-64bit%' in sdk.version:
+        expand_category_param('%nightly-llvm-64bit%', llvm_64bit_nightlies, sdk, is_sdk=True)
+      elif '%nightly-llvm-32bit%' in sdk.version:
+        expand_category_param('%nightly-llvm-32bit%', llvm_32bit_nightlies, sdk, is_sdk=True)
+      elif '%nightly-emscripten%' in sdk.version:
+        expand_category_param('%nightly-emscripten%', emscripten_nightlies, sdk, is_sdk=True)
+      elif '%waterfall-lkgr%' in sdk.version:
+        expand_category_param('%waterfall-lkgr%', waterfall_lkgr, sdk, is_sdk=True)
+      elif '%releases-tag%' in sdk.version:
+        expand_category_param('%releases-tag%', releases_tags, sdk, is_sdk=True)
       else:
         add_sdk(sdk)
 
