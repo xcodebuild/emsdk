@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import json
 import os
 import shlex
@@ -32,7 +33,7 @@ def failing_call_with_output(cmd, expected):
   assert expected in stdout, 'call did not have the right output'
 
 def hack_emsdk(marker, replacement):
-  src = open('emsdk').read()
+  src = open('emsdk.py').read()
   assert marker in src
   src = src.replace(marker, replacement)
   name = '__test_emsdk'
@@ -88,8 +89,8 @@ print('update')
 check_call('./emsdk update-tags')
 
 print('test latest-releases-upstream')
-check_call('python2 ./emsdk install latest-upstream')
-check_call('./emsdk activate latest-upstream')
+check_call('python2 ./emsdk.py install latest-upstream')
+check_call('python3 ./emsdk.py activate latest-upstream')
 test_lib_building('upstream', use_asmjs_optimizer=False)
 assert open(os.path.expanduser('~/.emscripten')).read().count('LLVM_ROOT') == 1
 assert 'upstream' in open(os.path.expanduser('~/.emscripten')).read()
@@ -147,13 +148,13 @@ temp_dir = tempfile.mkdtemp()
 
 for filename in os.listdir('.'):
   if not filename.startswith('.') and not os.path.isdir(filename):
-    shutil.copyfile(filename, os.path.join(temp_dir, filename))
+    shutil.copy2(filename, os.path.join(temp_dir, filename))
 
 os.chdir(temp_dir)
 
-check_call('python ./emsdk update')
+check_call('python ./emsdk.py update')
 print('second time')
-check_call('python ./emsdk update')
+check_call('python ./emsdk.py update')
 
 print('verify downloads exist for all OSes')
 latest_hash = TAGS['releases'][TAGS['latest']]
