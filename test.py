@@ -152,9 +152,9 @@ for filename in os.listdir('.'):
 
 os.chdir(temp_dir)
 
-check_call('python ./emsdk.py update')
+check_call('./emsdk update')
 print('second time')
-check_call('python ./emsdk.py update')
+check_call('./emsdk update')
 
 print('verify downloads exist for all OSes')
 latest_hash = TAGS['releases'][TAGS['latest']]
