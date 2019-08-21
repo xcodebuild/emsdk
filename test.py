@@ -90,7 +90,7 @@ check_call('./emsdk update-tags')
 
 print('test latest-releases-upstream')
 check_call('python2 ./emsdk.py install latest-upstream')
-check_call('python3 ./emsdk.py activate latest-upstream')
+check_call('./emsdk activate latest-upstream')
 test_lib_building('upstream', use_asmjs_optimizer=False)
 assert open(os.path.expanduser('~/.emscripten')).read().count('LLVM_ROOT') == 1
 assert 'upstream' in open(os.path.expanduser('~/.emscripten')).read()
